@@ -1,65 +1,523 @@
-#  Social Movement Analysis using a Custom Neural Network in C++
+# Analyzing Social Movement using Neural Network in C++
 
-[![C++](https://img.shields.io/badge/Language-C%2B%2B%2017-blue.svg)](https://isocpp.org/)
-[![Course Project](https://img.shields.io/badge/Course%20Project-CSE2100-red.svg)]()
+A custom neural network implemented completely from scratch in C++ for analyzing social movement patterns and predicting the overall impact of a movement.
 
-
-A lightweight, high-performance neural network implemented **completely from scratch** in C++ to analyze social movement patterns and predict their overall impact. Developed as part of the **CSE2100** course project.
+This project was developed as part of the **CSE2100 course project**.
 
 ---
 
-## Project Overview
+# Project Idea
 
-Social movements are complex phenomena driven by multi-dimensional factors such as public support, organizational structure, media landscape, and socioeconomic stability. This project aims to model and predict the overall impact score of a social movement by training a custom multi-layer neural network on historical data.
+Social movements are influenced by many factors such as public support, inclusiveness, violence level, misinformation, social instability, and organization.
 
-### Why Build from Scratch?
-Instead of relying on heavy framework abstractions like TensorFlow or PyTorch, every underlying mechanism—from matrix-like weights manipulation to calculus-based backpropagation—was written in pure C++. This provides a granular understanding of:
-*   Memory management and optimization in mathematical models.
-*   The exact mechanics of gradient descent and weight updates.
-*   Data pipeline structures inside production-level C++.
+This project uses a custom-built neural network to learn the relationship between these factors and predict the overall impact of a movement.
+
+Instead of using machine learning libraries such as TensorFlow or PyTorch, every component of the neural network was implemented manually in C++.
+
+The project demonstrates the fundamental concepts behind machine learning:
+
+- Data preprocessing
+- Neural network architecture
+- Forward propagation
+- Backpropagation
+- Weight updates
+- Prediction
+- Feature importance analysis
 
 ---
 
-## ⚙️ How the Engine Works
+# What the Program Does
 
-The core workflow of the system is engineered into 4 distinct phases:
+The program follows these steps:
+
+### Step 1: Read dataset from CSV
+
+The system reads movement data from:
+
+```bash
+Merged_Movements_final.csv
+```
+
+Each row contains:
+
+| Feature | Meaning |
+|----------|----------|
+| A | Public support |
+| B | Violence / Non-violence level |
+| C | Inclusiveness |
+| D | Organization |
+| E | Property damage |
+| F | Social instability |
+| G | Misinformation |
+| H | Overall movement impact |
+
+---
+
+### Step 2: Data preprocessing
+
+The program prepares the dataset before training:
+
+- Skips timestamp column
+- Converts values into numeric form
+- Normalizes input values to range:
 
 ```text
-[ CSV Dataset ] ──> [ Preprocessing & Min-Max Normalization ] ──> [ 80/20 Train/Test Split ]
-                                                                             │
-[ Interactive CLI Predictions ] <── [ Feature Importance Analysis ] <── [ Network Training ]
+0 → 1
+```
 
-1. Data Pipeline & FeaturesThe application processes inputs from Merged_Movements_final.csv. Each records represents a historical social movement containing the following quantified attributes:Feature IDAttribute NameDescriptionAPublic SupportLevel of general population backingBNon-Violence LevelDegree of peaceful protest vs. violent escalationsCInclusivenessDiversity of demographic participationDOrganizationCoordination quality and leadership structureEProperty DamageExtent of physical/infrastructure destructionFSocial InstabilityPre-existing friction/chaos in the regionGMisinformationProliferation of fake news/counter-propagandaH (Target)Overall ImpactThe ground-truth target score to predict2. Mathematics & Network TopologyThe system instantiates a 7 ➔ 7 ➔ 1 Dense Feedforward Network architecture.Activation Function: Sigmoid is utilized to map values smoothly between the $0$ and $1$ boundaries.$$f(x) = \frac{1}{1 + e^{-x}}$$Data Normalization: Simple, efficient linear transformation scaled down to prevent neuron saturation and gradient vanishing issues.🛠️ Codebase ArchitectureThe project code is cleanly encapsulated into modular sections:💾 MovementData ClassAn Object-Oriented representation of a movement profile. It handles data storage, internal state transitions, and manages its own normalized feature maps.📊 Mathematical & Training SubsystemsreadCSVData(): Secure file parsing stream that skips metadata headers, handles null-safety checks, maps values to vectors, and normalizes them dynamically.initializeBrain(): Uses a randomized distribution to seed network weights and biases, avoiding the symmetrical weight trap.predict() (Forward Propagation): Calculates the dot product of weights and inputs, applies biases, and pushes activations sequentially through the hidden layer to the output node.trainBrain() (Backpropagation): Evaluates network error utilizing Mean Squared Error logic, calculates local gradients via the chain rule derivative of the Sigmoid function, and runs gradient descent optimizations across 300 cycles at a learning rate ($\alpha$) of 0.1.testBrain(): Runs unseen testing data subsets through the system, outputting absolute metrics, Mean Absolute Error (MAE), and final accuracy thresholds.📈 Analytics & Live Interactive LayeranalyzeFeatures(): Evaluates the finalized weights matrices to isolate which input factors exert the strongest mathematical pull on predictions.predictNewMovement(): A dynamic, CLI-driven environment prompting users for custom operational criteria to return real-time predictions, classification tags, confidence ratings, and proactive strategic recommendations.📂 Repository StructureBashAnalyzing-Social-Movement-ML/
+Normalization helps the neural network learn faster.
+
+Example:
+
+```text
+Original value = 5
+
+Normalized value:
+
+5/5=1
+```
+
+---
+
+### Step 3: Split training and testing data
+
+Dataset is automatically divided:
+
+```text
+80% → Training Data
+
+20% → Testing Data
+```
+
+Training data teaches the network.
+
+Testing data checks how well the network learned.
+
+---
+
+### Step 4: Create Neural Network
+
+The project uses this architecture:
+
+```text
+Input Layer:
+
+7 neurons
+
+↓
+
+Hidden Layer:
+
+7 neurons
+
+↓
+
+Output Layer:
+
+1 neuron
+```
+
+Structure:
+
+```text
+A,B,C,D,E,F,G
+
+↓
+
+Hidden neurons
+
+↓
+
+Predicted H score
+```
+
+---
+
+# Main Sections of Code
+
+The code is divided into several logical sections.
+
+---
+
+## 1. MovementData Class
+
+Purpose:
+
+Stores all movement information.
+
+Contains:
+
+```cpp
+A,B,C,D,E,F,G
+```
+
+Input factors.
+
+and:
+
+```cpp
+H
+```
+
+Actual impact score.
+
+Also stores:
+
+```cpp
+successScore
+```
+
+Normalized output value.
+
+---
+
+## 2. CSV Reader Function
+
+Function:
+
+```cpp
+readCSVData()
+```
+
+Purpose:
+
+Reads dataset from CSV file.
+
+Main tasks:
+
+- Opens file
+- Reads rows
+- Skips invalid data
+- Normalizes values
+- Stores everything into vectors
+
+---
+
+## 3. Neural Network Initialization
+
+Function:
+
+```cpp
+initializeBrain()
+```
+
+Purpose:
+
+Creates random weights and biases.
+
+Weights are initialized randomly because neural networks begin learning from random values.
+
+Example:
+
+```text
+Input → Hidden weights
+
+Hidden → Output weights
+```
+
+---
+
+## 4. Forward Propagation
+
+Function:
+
+```cpp
+predict()
+```
+
+Purpose:
+
+Moves information through the network.
+
+Flow:
+
+```text
+Input Layer
+
+↓
+
+Hidden Layer
+
+↓
+
+Output Layer
+```
+
+Uses:
+
+```cpp
+Sigmoid Activation Function
+```
+
+Formula:
+
+f(x)=1/(1+e^-x)
+
+Purpose:
+
+Transforms output into values between:
+
+```text
+0 and 1
+```
+
+---
+
+## 5. Training Section
+
+Function:
+
+```cpp
+trainBrain()
+```
+
+Purpose:
+
+Teaches the network.
+
+Training process:
+
+### Forward pass
+
+Predict output
+
+↓
+
+Calculate error
+
+↓
+
+Backward pass
+
+↓
+
+Update weights
+
+↓
+
+Repeat
+
+The network gradually learns patterns from data.
+
+Current parameters:
+
+```text
+Training cycles = 300
+
+Learning rate = 0.1
+```
+
+---
+
+## 6. Backpropagation
+
+Purpose:
+
+Adjust network weights using prediction error.
+
+Process:
+
+```text
+Actual output
+
+-
+
+Predicted output
+
+=
+
+Error
+```
+
+The error travels backward through the network and updates the weights.
+
+This helps improve future predictions.
+
+---
+
+## 7. Testing Section
+
+Function:
+
+```cpp
+testBrain()
+```
+
+Purpose:
+
+Measures model performance.
+
+Outputs:
+
+- Prediction
+- Actual value
+- Error
+- Average error
+- Accuracy percentage
+
+Example:
+
+```text
+Predicted H = 7.2
+
+Actual H = 8
+
+Error = 0.8
+```
+
+---
+
+## 8. Feature Importance Analysis
+
+Function:
+
+```cpp
+analyzeFeatures()
+```
+
+Purpose:
+
+Finds which factors affect prediction most.
+
+Example output:
+
+```text
+Public Support: 0.65
+
+Organization: 0.82
+
+Misinformation: 0.40
+```
+
+Higher values indicate stronger influence.
+
+---
+
+## 9. Interactive Prediction System
+
+Function:
+
+```cpp
+predictNewMovement()
+```
+
+Purpose:
+
+Allows user to manually enter movement characteristics.
+
+Example:
+
+```text
+Public Support:
+
+4
+
+Non-violence:
+
+5
+
+Inclusiveness:
+
+3
+```
+
+The system predicts:
+
+```text
+Impact score
+
+Impact category
+
+Success probability
+
+Recommendations
+```
+
+Example:
+
+```text
+Predicted H Score:
+
+8.4/10
+
+Impact Category:
+
+Very Positive
+
+Success Probability:
+
+84%
+```
+
+---
+
+# Technologies Used
+
+- C++
+- Object Oriented Programming
+- STL
+- File Handling
+- CSV Processing
+- Neural Networks
+- Machine Learning Concepts
+
+---
+
+# Project Structure
+
+```bash
+Analyzing-Social-Movement-ML/
+
 │
-├── cse2100_project.cpp          # Core C++ source implementation file
-├── Merged_Movements_final.csv    # Principal evaluation dataset
-├── 2303068_custom_dataset.csv   # Supplementary/Validation dataset
-├── README.md                    # Project documentation
-└── .gitignore                   # Build artifact tracking configuration
-🚀 Getting StartedPrerequisitesEnsure you have a modern C++ compiler installed (g++ supporting C++11 or higher).Compilation & ExecutionClone the repository to your local system:Bashgit clone [https://github.com/hassanmahadi4404-code/Analyzing-Social-Movement-Ml.git](https://github.com/hassanmahadi4404-code/Analyzing-Social-Movement-Ml.git)
-cd Analyzing-Social-Movement-Ml
-
-
-2. Compile using a standard optimized release configuration:
-   ```bash
-   g++ -O3 cse2100_project.cpp -o movement_analyzer
-   
-Launch the binary executable:Bash./movement_analyzer
-
+├── cse2100_project.cpp
+├── Merged_Movements_final.csv
+├── 2303068_custom_dataset.csv
+├── README.md
+└── .gitignore
+```
 
 ---
 
-## 🔮 Roadmap & Future Scope
-- [ ] Implement serialization to save and load trained weight configurations (`.bin` / `.txt`).
-- [ ] Add support for dynamically configurable hidden layer counts and sizes.
-- [ ] Expand parameter optimization algorithms (e.g., Adam or Momentum-based gradient descent).
-- [ ] Design a lightweight cross-platform Desktop GUI interface.
+# How to Run
+
+Clone repository:
+
+```bash
+git clone https://github.com/hassanmahadi4404-code/Analyzing-Social-Movement-Ml.git
+```
+
+Compile:
+
+```bash
+g++ cse2100_project.cpp -o movement
+```
+
+Run:
+
+```bash
+./movement
+```
 
 ---
 
-## 👤 Author
+# Future Improvements
 
-**Mahadi Hassan**
-*   **Institution:** Rajshahi University of Engineering and Technology (RUET)
-*   **Department:** Computer Science and Engineering (CSE)
-*   **LinkedIn:** [@mahadi-hassan](https://www.linkedin.com/in/mahadi-hassan-b25813
+Possible improvements:
+
+- Save trained model weights
+- Dynamic dataset path input
+- Better visualization
+- Graph generation
+- Larger dataset
+- GUI application
+- Deep learning extension
+
+---
+
+# Author
+
+Mahadi Hassan
+
+LinkedIn:
+
+https://www.linkedin.com/in/mahadi-hassan-b25813343/
